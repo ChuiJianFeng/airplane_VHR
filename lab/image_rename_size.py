@@ -4,13 +4,13 @@ import cv2
 
 class ImageRename():
     def __init__(self):
-        self.path = '../resources/set1/airplane'  # 圖片存放地址
+        self.path = '../resources/deal'  # 圖片存放地址
 
     def rename(self):
         filelist = os.listdir(self.path)
         total_num = len(filelist)
 
-        i = 1
+        i = 92
 
         for item in filelist:
             if item.endswith('.bmp'):
@@ -24,8 +24,8 @@ class ImageRename():
         print('total %d to rename & converted %d pngs' % (total_num, i))
 
     def main(self):
-        data_dir_path = u"../resources/set1/airplane"
-        file_list = os.listdir(r'../resources/set1/airplane')
+        data_dir_path = u"../resources/deal"
+        file_list = os.listdir(r'../resources/deal')
         count = 0
         for file_name in file_list:
             root, ext = os.path.splitext(file_name)
@@ -38,5 +38,5 @@ class ImageRename():
 
 if __name__ == '__main__':
     newname = ImageRename()
-    # newname.rename()
+    newname.rename()
     newname.main()

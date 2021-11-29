@@ -1,4 +1,9 @@
 import numpy as np
+import os
+import glob
+import cv2
+import argparse as ap
+from config import *
 
 # hist_bins = np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])
 #
@@ -11,8 +16,18 @@ import numpy as np
 # a,b = hist_bins.shape
 # print(a,b)
 # #---------------------------
-a = np.array([45.50207415, 13.85894241,10.25124201, 14.49151809, 10.44445286,  8.5049243,
- 12.64558588, 12.06353686,  9.90322278])
-b = np.array([174,  36,  99, 698,  10,   7])
+# a = np.array([45.50207415, 13.85894241,10.25124201, 14.49151809, 10.44445286,  8.5049243,
+#  12.64558588, 12.06353686,  9.90322278])
+# b = np.array([174,  36,  99, 698,  10,   7])
+#
+# print(np.concatenate((a,b), axis=0))
+posNum = 25
+negNum = 91
+for i in range(posNum):
+    filename = '../resources/pos_image/' + str(i + 1) + '.bmp'
+    print(filename)
+    image = cv2.imread(filename)
 
-print(np.concatenate((a,b), axis=0))
+
+    cv2.imshow("img", image)
+    cv2.waitKey()
