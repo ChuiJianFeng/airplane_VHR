@@ -1,6 +1,7 @@
 import numpy as np
 import cv2
 from matplotlib import pyplot as plt
+from matplotlib.ticker import MultipleLocator
 
 kernel_x = np.array([  # 下一個減掉前一個
     [-1, 0, 1],
@@ -8,18 +9,25 @@ kernel_x = np.array([  # 下一個減掉前一個
 kernel_y = kernel_x.transpose((1, 0))
 
 
+
 def main():
     create_window("magnitude", 200, 200)
     create_window("original", 200, 200)
-    image = cv2.imread("../resources/test1124.bmp", cv2.IMREAD_GRAYSCALE)
+    image = cv2.imread("../resources/test1124.bmp")
+    gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gray_image = np.sqrt(gray_image / np.max(gray_image))  # gamma校正
 
-
-    gx, gy = get_image_gradient(image)
+    gx, gy = get_image_gradient(gray_image)
     magnitude, angle = get_magnitude_angle(gx, gy)
 
     hist_bin = np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])
-    hist_g = get_hist_of_grad(magnitude, angle, hist_bin)  # histogram2D
+    hist_g = get_hist_of_grad(magnitude, angle, hist_bin)  #  每張圖的角度sum
 
+    hue = np.array([0, 0, 0, 0, 0, 0])
+    for row in image:
+        for r, g, b in row:
+            hue = classifier_hue(hist_g, hue, get_hue(r, g, b))
+    print(hue)
 
     cv2.imshow("original", image)
     cv2.imshow("magnitude", magnitude)
@@ -28,7 +36,7 @@ def main():
 
 
 def get_image_gradient(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    image = np.sqrt(image / np.max(image))  # gamma校正
+
     gx = cv2.filter2D(image, -1, kernel_x)
     gy = cv2.filter2D(image, -1, kernel_y)
 
@@ -38,13 +46,13 @@ def get_image_gradient(image: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
 def get_magnitude_angle(gx: np.ndarray, gy: np.ndarray):
     magnitude = np.sqrt(gx ** 2 + gy ** 2)
     angle = np.arctan2(gy, gx) * (180 / np.pi) % 180
-
     return magnitude, angle
 
 
 def get_hist_of_grad(magnitude, angle, hist_bins):
     hist_g = np.zeros(shape=hist_bins.size)
     row, col = magnitude.shape
+    angle = angle + 0.00001
     # 丟失180為0這些數據，全部都會集中在0-20之間 數據會錯
     for i in range(row):
         for j in range(col):
@@ -64,7 +72,8 @@ def get_hist_of_grad(magnitude, angle, hist_bins):
                         hist_g[idx] += ((angle[i][j] - hist_bins[idx - 1]) / 20) * magnitude[i][j]
     print(hist_g)
     print(hist_bins)
-    hist_g = hist_g / sum(hist_bins)    # 歸一化
+    hist_g = hist_g / sum(hist_bins)  # 歸一化
+
     plt.bar(hist_bins,
             hist_g,
             width=10,
@@ -77,10 +86,50 @@ def get_hist_of_grad(magnitude, angle, hist_bins):
                    'navy',
                    'darkblue',
                    'mediumblue'])
-    plt.xticks(rotation='horizontal')
+    plt.xticks(range(0, 180, 20), rotation='horizontal')
     plt.show()
     return hist_g
 
+
+def get_hue(r, g, b):
+    rgb = [0, 0, 0]
+    if r != 0:
+        rgb[0] = r / 255
+    if g != 0:
+        rgb[1] = g / 255
+    if b != 0:
+        rgb[2] = b / 255
+    max_value = max(rgb)
+    min_value = min(rgb)
+
+    if max_value - min_value == 0:
+        result = 0
+    else:
+        if max_value == rgb[0]:
+            result = 60 * (((rgb[1] - rgb[2]) / (max_value - min_value)) % 6)
+        elif max_value == rgb[1]:
+            result = 60 * (((rgb[2] - rgb[0]) / (max_value - min_value)) + 2)
+        else:
+            result = 60 * (((rgb[0] - rgb[1]) / (max_value - min_value)) + 4)
+    return result
+
+
+def classifier_hue(hist_g,hue, value):
+    angle = np.array([0, 60, 120, 180, 240, 300])
+    if value == 360:
+        hist_g[0] += 1
+        return hue
+
+    idx = (np.abs(angle - value)).argmin()
+    if angle[idx] == value:
+        hue[idx] += 1
+    else:
+        if value < angle[idx]:
+            hue[idx - 1] += 1
+        else:
+            hue[idx] += 1
+
+    return hue
 
 def create_window(winname, width, height):
     cv2.namedWindow(winname, cv2.WINDOW_KEEPRATIO)
