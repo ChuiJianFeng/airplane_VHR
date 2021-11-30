@@ -4,18 +4,18 @@ import cv2
 
 class ImageRename():
     def __init__(self):
-        self.path = '../resources/deal'  # 圖片存放地址
+        self.path = '../resources/ph/pos'  # 圖片存放地址
 
     def rename(self):
         filelist = os.listdir(self.path)
         total_num = len(filelist)
 
-        i = 92
+        i = 1
 
         for item in filelist:
             if item.endswith('.bmp'):
                 src = os.path.join(os.path.abspath(self.path), item)
-                if i < 1000:
+                if i < 2000:
                     dst = os.path.join(os.path.abspath(self.path), str(i) + '.bmp')
                 os.rename(src, dst)
                 print('converting %s to %s ...' % (src, dst))
@@ -24,8 +24,8 @@ class ImageRename():
         print('total %d to rename & converted %d pngs' % (total_num, i))
 
     def main(self):
-        data_dir_path = u"../resources/deal"
-        file_list = os.listdir(r'../resources/deal')
+        data_dir_path = u"../resources/ph/pos"
+        file_list = os.listdir(r'../resources/ph/pos')
         count = 0
         for file_name in file_list:
             root, ext = os.path.splitext(file_name)

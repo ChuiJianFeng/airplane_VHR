@@ -20,13 +20,13 @@ def main():
 
     # initial
     posNum = 300
-    negNum = 278
+    negNum = 918
     images = []
     labels = []
 
     # positive
     for i in range(posNum):
-        filename = '../resources/pos_image/' + str(i + 1) + '.bmp'
+        filename = '../resources/train/pos_image/' + str(i + 1) + '.bmp'
         image = cv2.imread(filename)
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         gray_image = np.sqrt(gray_image / np.max(gray_image))  # gamma校正
@@ -47,17 +47,13 @@ def main():
         # get hue and classifier
         hue = np.array([0, 0, 0, 0, 0, 0])
         result, hue = get_hue(hue, image)
-        # print(f" result:{result} , hue: {hue} \r\n", end=" ")
 
-        # build cell store hug and hist
-        # cell_multi_feature = np.concatenate((np.array(hue),np.array(hist_g)), axis=0)
-        # # 將該hog特征值存到featureArray里面
         images.append(hist_g.reshape(-1))
         labels.append(1)
 
     # negative
     for i in range(negNum):
-        filename = '../resources/neg_image/' + str(i + 1) + '.bmp'
+        filename = '../resources/train/neg_image/' + str(i + 1) + '.bmp'
         image = cv2.imread(filename)
 
         gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
@@ -79,11 +75,7 @@ def main():
         # get hue and classifier
         hue = np.array([0, 0, 0, 0, 0, 0])
         result, hue = get_hue(hue, image)
-        # print(f" result:{result} , hue: {hue} \r\n", end=" ")
 
-        # build cell store hug and hist
-        # cell_multi_feature = np.concatenate((np.array(hue),np.array(hist_g)), axis=0)
-        # # 將該hog特征值存到featureArray里面
         images.append(hist_g.reshape(-1))
         labels.append(-1)
 
@@ -133,10 +125,11 @@ def get_hist_of_grad(magnitude, angle, hist_bins):
                         hist_g[idx] += ((angle[i][j] - hist_bins[idx - 1]) / 20) * magnitude[i][j]
     hist_g = hist_g / sum(hist_g)  # 歸一化
 
-    # L2-hsy
     out = hist_g / np.sqrt(np.sum(hist_g ** 2) + eps ** 2)
-    out = np.minimum(out, 0.2)
-    out = out / np.sqrt(np.sum(out ** 2) + eps ** 2)
+    # L2-hsy
+    # out = hist_g / np.sqrt(np.sum(hist_g ** 2) + eps ** 2)
+    # out = np.minimum(out, 0.2)
+    # out = out / np.sqrt(np.sum(out ** 2) + eps ** 2)
 
     # plt.bar(hist_bins,
     #         hist_g,
@@ -204,8 +197,8 @@ def create_window(winname, width, height):
 def predict():
     loaded_model = joblib.load('airplane_model')
     count = 0
-    for i in range(100):
-        filename = '../resources/neg_image/' + str(i + 1) + '.bmp'
+    for i in range(52):
+        filename = '../resources/test/neg/' + str(i + 1) + '.bmp'
         img = cv2.imread(filename)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_image = np.sqrt(gray_image / np.max(gray_image))  # gamma校正
@@ -218,10 +211,10 @@ def predict():
         hist_g = get_hist_of_grad(magnitude, angle, hist_bin)  # 每張圖的角度sum
 
         pred = loaded_model.predict(hist_g.reshape(1, -1))[0]
-        if pred == 1:
-            count += 1
+        count += pred
 
-        print(pred)
+        if pred ==1 :
+            print("pos:"+str(i+1))
     print(count)
 
 
