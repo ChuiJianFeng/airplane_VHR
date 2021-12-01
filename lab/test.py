@@ -21,13 +21,5 @@ from config import *
 # b = np.array([174,  36,  99, 698,  10,   7])
 #
 # print(np.concatenate((a,b), axis=0))
-posNum = 25
-negNum = 91
-for i in range(posNum):
-    filename = '../resources/pos_image/' + str(i + 1) + '.bmp'
-    print(filename)
-    image = cv2.imread(filename)
-
-
-    cv2.imshow("img", image)
-    cv2.waitKey()
+a = [4,4]
+print(np.size(a))
