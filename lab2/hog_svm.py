@@ -28,7 +28,7 @@ for i in range(posNum):
     # get the HOG descriptor for the image
 
     fd = feature.hog(gray_image, orientations=9, pixels_per_cell=(8, 8),
-                                cells_per_block=(2, 2), transform_sqrt=True, block_norm='L2-Hys')
+                                cells_per_block=(2, 2), transform_sqrt=True, block_norm='L2')
 
     # Rescale histogram for better display
     # update the data and labels

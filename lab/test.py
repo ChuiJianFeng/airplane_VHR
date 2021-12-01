@@ -3,23 +3,31 @@ import os
 import glob
 import cv2
 import argparse as ap
-from config import *
 
-# hist_bins = np.array([0, 20, 40, 60, 80, 100, 120, 140, 160])
-#
-# hist_z = np.zeros(shape=hist_bins.size)
-#
-# angle = 38
-# idx = (np.abs(hist_bins - angle)).argmin()
-# print(np.abs(hist_bins - angle))
-#
-# a,b = hist_bins.shape
-# print(a,b)
-# #---------------------------
-# a = np.array([45.50207415, 13.85894241,10.25124201, 14.49151809, 10.44445286,  8.5049243,
-#  12.64558588, 12.06353686,  9.90322278])
-# b = np.array([174,  36,  99, 698,  10,   7])
-#
-# print(np.concatenate((a,b), axis=0))
-a = [4,4]
-print(np.size(a))
+
+def main():
+    r = 8  # radius == 8
+    create_window("image", 200, 200)
+    image = cv2.imread("../resources/train/pos_image/1.bmp", cv2.IMREAD_GRAYSCALE)
+
+    h, w = image.shape
+    cx, cy = w // 2, h // 2
+
+    x, y = np.abs(np.meshgrid(np.arange(w) - cx, np.arange(h) - cy))
+    circleimage = image.copy()
+    circleimage[np.sqrt((x - cx) ** 2 + (y - cy) ** 2) == 8] = 0
+
+    # rc.append()
+    # rc.append([x, y])
+
+    cv2.imshow("image", circleimage)
+    cv2.waitKey()
+
+
+def create_window(winname, width, height):
+    cv2.namedWindow(winname, cv2.WINDOW_KEEPRATIO)
+    cv2.resizeWindow(winname, width, height)
+
+
+if __name__ == '__main__':
+    main()

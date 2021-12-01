@@ -1,7 +1,7 @@
 # load the model from disk
 import numpy as np
 from matplotlib import pyplot as plt
-from numpy.lib.stride_tricks import sliding_window_view
+# from numpy.lib.stride_tricks import sliding_window_view
 from sklearn.svm import LinearSVC
 from skimage import feature, exposure, transform
 from skimage.feature import hog
@@ -15,16 +15,19 @@ import cv2
 import os
 import glob
 
+
+
 def main():
+    count = 0
     # Define HOG Parameters
     # change them if necessary to orientations = 8, pixels per cell = (16,16), cells per block to (1,1) for weaker HOG
     orientations = 9
     pixels_per_cell = (8, 8)
     cells_per_block = (2, 2)
-    threshold = .3
+    threshold = 1.2
 
     loaded_model = joblib.load('../lab/airplane_model')
-    filename = '../test/1.bmp'
+    filename = '../test/devos/1.bmp'
     img = cv2.imread(filename)
 
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -37,7 +40,7 @@ def main():
     # defining the size of the sliding window (has to be, same as the size of the image in the training data)
     (winW, winH) = (64, 64)
     windowSize = (winW, winH)
-    downscale = 1.5
+    downscale = 1.2
     # Apply sliding window:
     for resized in pyramid_gaussian(gray_image, downscale=1.5):  # loop over each layer of the image that you take!
         # loop over the sliding window for each layer of the pyramid
@@ -46,14 +49,15 @@ def main():
             if window.shape[0] != winH or window.shape[
                 1] != winW:  # ensure the sliding window has met the minimum size requirement
                 continue
-            fds = hog(window, orientations, pixels_per_cell, cells_per_block,
-                      block_norm='L2')  # extract HOG features from the window captured
+            fds = feature.hog(window, orientations, pixels_per_cell, cells_per_block,
+                              block_norm='L2')  # extract HOG features from the window captured
             fds = fds.reshape(1, -1)  # re shape the image to make a silouhette of hog
-            pred = loaded_model.predict(fds)  # use the SVM model to make a prediction on the HOG features extracted from the window
+            pred = loaded_model.predict(
+                fds)  # use the SVM model to make a prediction on the HOG features extracted from the window
 
             if pred == 1:
-                if loaded_model.decision_function(
-                        fds) > 0.8:  # set a threshold value for the SVM prediction i.e. only firm the predictions above probability of 0.6
+                if  loaded_model.decision_function(
+                        fds) > threshold:  # set a threshold value for the SVM prediction i.e. only firm the predictions above probability of 0.6
                     print("Detection:: Location -> ({}, {})".format(x, y))
                     print("Scale ->  {} | Confidence Score {} \n".format(scale, loaded_model.decision_function(fds)))
                     detections.append(
@@ -61,8 +65,10 @@ def main():
                          loaded_model.decision_function(fds),
                          int(windowSize[0] * (downscale ** scale)),  # create a list of all the predictions found
                          int(windowSize[1] * (downscale ** scale))))
-        scale += 1
+                    count += 1
+        scale += 0.5
 
+    print(count)
     clone = resized.copy()
     # for (x_tl, y_tl, _, w, h) in detections:
     #     cv2.rectangle(img, (x_tl, y_tl), (x_tl + w, y_tl + h), (0, 0, 255), thickness=2)
@@ -79,16 +85,26 @@ def main():
 
     for (xA, yA, xB, yB) in pick:
         cv2.rectangle(img, (xA, yA), (xB, yB), (0, 255, 0), 2)
+
     cv2.imshow("Raw Detections after NMS", img)
+    cv2.imwrite("airplane_1.bmp", img)
     #### Save the images below
     cv2.waitKey(0) & 0xFF
 
-def sliding_window(image, stepSize, windowSize):# image is the input, step size is the no.of pixels needed to skip and windowSize is the size of the actual window
+
+def sliding_window(image, stepSize,
+                   windowSize):  # image is the input, step size is the no.of pixels needed to skip and windowSize is the size of the actual window
     # slide a window across the image
-    for y in range(0, image.shape[0], stepSize):# this line and the line below actually defines the sliding part and loops over the x and y coordinates
+    for y in range(0, image.shape[0],
+                   stepSize):  # this line and the line below actually defines the sliding part and loops over the x and y coordinates
         for x in range(0, image.shape[1], stepSize):
             # yield the current window
             yield (x, y, image[y: y + windowSize[1], x:x + windowSize[0]])
+
+
+def create_window(winname, width, height):
+    cv2.namedWindow(winname, cv2.WINDOW_KEEPRATIO)
+    cv2.resizeWindow(winname, width, height)
 
 
 if __name__ == '__main__':

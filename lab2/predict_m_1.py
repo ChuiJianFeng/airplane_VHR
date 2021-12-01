@@ -26,12 +26,18 @@ def main():
     fp = 0
     scale = 0
     for i in range(1):
-        filename = '../test/1.bmp'
+        filename = '../test/devos/1.bmp'
         img = cv2.imread(filename)
         gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         gray_image = np.sqrt(gray_image / np.max(gray_image))  # gamma校正
 
-        for i, row in enumerate(sliding_window_view(gray_image, (64, 64))):
+        h, w = gray_image.shape
+        cx, cy = w // 2, h // 2
+        x, y = np.meshgrid(np.arange(w) - cx, np.arange(h) - cy)  # 生成一個座標矩陣
+        circular_patch = gray_image.copy()
+        circular_patch[x ** 2 + y ** 2 >= (min(cx, cy)) ** 2] = 0
+
+        for i, row in enumerate(sliding_window_view(circular_patch, (64, 64))):
             if i % 10 != 0:
                 continue
             for j, col in enumerate(row):
@@ -56,8 +62,8 @@ def main():
                         detections.append((x, y, w, h))
         scale += 1
 
-    for (x_tl, y_tl, w, h) in detections:
-        cv2.rectangle(img, (x_tl, y_tl), (x_tl + w, y_tl + h), (0, 0, 255), thickness=2)
+    for (x, y, w, h) in detections:
+        cv2.rectangle(img, (x, y), (x + w, y + h), (0, 0, 255), thickness=2)
 
     cv2.imshow("Raw Detections after NMS", img)
     cv2.waitKey(0) & 0xFF
